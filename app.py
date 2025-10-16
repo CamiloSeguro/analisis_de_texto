@@ -102,9 +102,19 @@ def normalize_spaces(t: str) -> str:
 
 def translate_es_to_en(text: str) -> str:
     try:
-        return translator.translate(text, src="es", dest="en").text
-    except Exception:
-        return text  # fallback sin traducir si falla
+        if not text.strip():
+            return text
+        detection = translator.detect(text)
+        src_lang = detection.lang
+        # Fuerza traducción solo si no está ya en inglés
+        if src_lang != "en":
+            translated = translator.translate(text, src=src_lang, dest="en")
+            return translated.text
+        else:
+            return text
+    except Exception as e:
+        st.warning(f"⚠️ Error al traducir ({e}). Se usará el texto original.")
+        return text
 
 def sentiment_blob(en_text: str) -> Tuple[float, float]:
     blob = TextBlob(en_text)
